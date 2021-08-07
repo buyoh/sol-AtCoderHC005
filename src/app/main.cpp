@@ -328,7 +328,7 @@ constexpr int inf = numeric_limits<int>::max() / 4;
 int N;
 P kStartPos;
 F<int> field;
-Timer progTimer;
+Timer<> progTimer;
 
 //
 
@@ -412,7 +412,7 @@ void initPreCalc() {
 double calcScoreFromTime(ll time) { return double(N) * 100000.0 / time; }
 
 pair<double, vector<int>> solveSingle() {
-  Timer timer;
+  Timer<> timer;
 
   // TODO: 戦略
   // - 外側へ誘導する？？
@@ -430,31 +430,62 @@ pair<double, vector<int>> solveSingle() {
   vector<int> commands;
   ll scoreTime = 0;
 
+  //
+
+  // first position
   P pos = kStartPos;
   // fill sight
   visited(pos) = true;
   for (auto p : preCalc(pos).sight)
     visited(p) = true;
 
+  P target;
+
+  // first target
+  {
+    do {
+      target = P{rand(0, N - 1), rand(0, N - 1)};
+    } while (visited(target));
+
+    // move to target
+    while (!visited(target)) {
+      const auto &dd = preCalc(pos).st(target);
+      // move
+      commands.emplace_back(dd.dir);
+      pos += FourMoving[dd.dir];
+      scoreTime += field(pos);
+
+      visited(pos) = true;
+      for (auto p : preCalc(pos).sight)
+        visited(p) = true;
+    }
+  }
+
   // fill non-visited cell
   while (true) {
-    // search for next moving
-    pair<int, int> best = {inf, -1};
-    repeat(y, N) {
-      repeat(x, N) {
-        if (visited(y, x))
-          continue;
-        const auto &dd = preCalc(pos).st(y, x);
-        int score = dd.dist + rand(0, 50) + x;
-        chmin(best, make_pair(score, dd.dir));
+    if (visited(target)) {
+      // search for next moving
+      pair<int, P> best;
+      best.first = inf;
+      repeat(y, N) {
+        repeat(x, N) {
+          if (visited(y, x))
+            continue;
+          const auto &dd = preCalc(pos).st(y, x);
+          int score = dd.dist + rand(0, 50);
+          chmin(best, make_pair(score, P{y, x}));
+        }
       }
+      if (best.first == inf)
+        break;
+      target = best.second;
     }
-    if (best.second == -1)
-      break;
+
+    const auto &dd = preCalc(pos).st(target);
 
     // move
-    commands.emplace_back(best.second);
-    pos += FourMoving[best.second];
+    commands.emplace_back(dd.dir);
+    pos += FourMoving[dd.dir];
     scoreTime += field(pos);
 
     // fill sight
