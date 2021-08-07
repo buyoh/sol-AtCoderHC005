@@ -1,3 +1,9 @@
+# sol-AtCoderHC005
+
+https://atcoder.jp/contests/ahc005/tasks/ahc005_a
+
+41 位
+
 # mmworkspace
 
 workspace for heuristic contest
